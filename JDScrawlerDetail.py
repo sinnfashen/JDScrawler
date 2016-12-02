@@ -5,7 +5,6 @@
 import json
 import requests
 import time
-# 自营与否 , 商店ID , 运费 , 提示 , 有货状态 ,
 def put(x):
     print(str(x)+' , ',end='')
 # 有货状态 , 运费 , 提示 ,
