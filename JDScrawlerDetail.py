@@ -5,55 +5,83 @@
 import json
 import requests
 import time
-# 物品ID , 自营与否 , 商店ID , 运费 , 提示 , 有货状态 ,赠品 , 促销券,平均分，评论数，好评率，中评率，差评率，
-def stock_put(x):
-    if 'self_D' in x['stock'].keys():
-        print('1 , '+str(x['stock']['self_D']['id'])+' , ',end='')
+# 自营与否 , 商店ID , 运费 , 提示 , 有货状态 ,
+def put(x):
+    print(str(x)+' , ',end='')
+# 有货状态 , 运费 , 提示 ,
+def stock_put(itemid):
+    url = 'https://c0.3.cn/stock?skuId=' + str(itemid)+'&cat=670,12800,12801&area=17_1441_41909_0&extraParam={%22originid%22:%221%22}'
+    req = requests.get(url)
+    x = json.loads(req.content.decode('gbk'))
+
+    put(str(x['stock']['StockState']))
+    if(x['stock']['StockState']!=34):
+        if x['stock']['dcashDesc']!='':
+            put(x['stock']['dcashDesc'][:x['stock']['dcashDesc'].find('<a')])
+        else:
+            put(x['stock']['eir'][0]['iconSrc'])
     else:
-        print('0 , '+str(x['stock']['D']['id'])+' , ',end='')
+        put('')
 
-    if x['stock']['dcashDesc']!='':
-        print(x['stock']['dcashDesc'][:x['stock']['dcashDesc'].find('<a')]+' , ',end='')
+    put('\"'+x['stock']['Ext']+'\"') 
+    
+# 自营与否 , 商店ID , 
+def vender_put(itemid):
+    url ='https://c0.3.cn/stocks?type=batchstocks&skuIds='+str(itemid)+'&area=17_1441_41909_0'
+    req = requests.get(url)
+    x = json.loads(req.content.decode('gbk'))
+    
+    if 'self_D' in x[str(itemid)].keys():
+        put(1),put(x[str(itemid)]['self_D']['id'])
     else:
-        print(x['stock']['eir'][0]['iconSrc']+' , ',end='') 
+        put(0),put(x[str(itemid)]['D']['id'])
+#赠品 , 促销券, 其它促销手段,
+def cuxiao_put(itemid):
 
-    print('\"'+x['stock']['Ext']+'\"'+' , ',end='') 
-
-    print(str(x['stock']['StockState'])+' , ',end='')
-#赠品 , 促销券, 其它,
-def cuxiao_put(x):
+    url = 'https://cd.jd.com/promotion/v2?skuId='+str(itemid)+'&area=17_1441_41909_0&shopId=57617&venderId=61908&cat=652%2C654%2C832&_=1480602489906'
+    req = requests.get(url)
+    x = json.loads(req.content.decode('gbk'))
+    
     if x['prom']['tags'] != []:
         print('\"',end='')
         for i in x['prom']['tags'][0]['gifts']:
-            print(i['nm']+' , ',end='')
-        print('\" , ',end='')
+            put(i['nm'])
+        print('\"',end='')
+    put('')
     if x['skuCoupon'] !=[]:
         print('\"',end='')
         for i in x['skuCoupon']:
-            print('满'+str(i['quota'])+'减'+str(i['discount'])+' , ',end='')
-        print('\" , ',end='')
-    if x['pickOneTag']!=[]:
+            put('满'+str(i['quota'])+'减'+str(i['discount']))
+        print('\"',end='')
+    put('')
+    if x['prom']['pickOneTag']!=[]:
         print('\"',end='')
         for i in x['pickOneTag']:
-            print(i['content']+' , ',end='')
-        print('\" , ',end='')
+            put(i['content'])
+        print('\"',end='')
+    put('')
 #平均分，评论数，好评率，中评率，差评率，
-def comment_put(x):
+def comment_put(itemid):
+
+    url = 'https://club.jd.com/comment/productCommentSummaries.action?referenceIds='+str(itemid)
+    req = requests.get(url)
+    x = json.loads(req.content.decode('gbk'))
+    
     x = x['CommentsCount'][0]
-    print(str(x['AverageScore'])+' , '+str(x['CommentCount'])+' , '+str(x['GoodRate'])+' , '\
-                                      +str(x['GeneralRate'])+' , '+str(x['PoorRate'])+' , ',end='')
-def main(itemid):
-    time.sleep(0.5)
-    print(str(itemid)+' , ',end='')
-    url = 'https://c0.3.cn/stock?skuId='+str(itemid)+'&venderId=1000040122&cat=1320,1584,2675&area=1_72_2799_0&buyNum=1&extraParam={%22originid%22:%221%22}&ch=1&pduid=655718568&pdpin='
+    put(x['AverageScore']),put(x['CommentCount']),put(x['GoodRate']),put(x['GeneralRate']),put(x['PoorRate'])
+#价格
+def price_put(itemid):
+
+    url = 'https://p.3.cn/prices/get?skuid=J_'+str(itemid)
     req = requests.get(url)
-    stock = json.loads(req.content.decode('gbk'))
-    url = 'https://cd.jd.com/promotion/v2?skuId='+str(itemid)+'&area=17_1441_41909_0&shopId=57617&venderId=61908&cat=652%2C654%2C832&_=1480602489906'
-    req = requests.get(url)
-    cuxiao = json.loads(req.content.decode('gbk'))
-    url = 'https://club.jd.com/comment/productCommentSummaries.action?referenceIds='+str(itemid)+'&_=1480603977503'
-    req = requests.get(url)
-    comment = json.loads(req.content.decode('gbk'))
-    stock_put(stock)
-    cuxiao_put(cuxiao)
-    comment_put(comment)
+    x = json.loads(req.content.decode('gbk')[1:-2])
+
+    put(x['p'])
+
+if __name__ == '__main__':
+    itemid=input()
+    price_put(itemid)
+    comment_put(itemid)
+    cuxiao_put(itemid)
+    vender_put(itemid)
+    stock_put(itemid)
