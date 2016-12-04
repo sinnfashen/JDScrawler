@@ -6,13 +6,13 @@ import json
 import requests
 import time
 import codecs
-
+import socket
 import sys
      
 reload(sys)
 sys.setdefaultencoding('utf-8')
     
-fout = codecs.open('output.csv','a','utf-8')
+fout = codecs.open('{}_JD_detail{}'.format(socket.gethostname(),time.strftime('%Y-%m-%d',time.localtime(time.time()))),'a','utf-8')
 def put(x,stop=True):
     if stop:
         fout.write('{}{}'.format(x,' , '))
@@ -88,6 +88,7 @@ def price_put(itemid):
 
     put(x['p'])
 
+#主函数
 def work(itemid):
     try:
         price_put(itemid)
@@ -100,5 +101,6 @@ def work(itemid):
         return -1
     else:
         return 0
+#结束后请运行关闭文件
 def finish():
     fout.close()
