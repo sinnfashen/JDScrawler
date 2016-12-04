@@ -5,7 +5,14 @@
 import json
 import requests
 import time
-fout = open('output.csv','a',encoding='UTF-8')
+import codecs
+
+import sys
+     
+reload(sys)
+sys.setdefaultencoding('utf-8')
+    
+fout = codecs.open('output.csv','a','utf-8')
 def put(x,stop=True):
     if stop:
         fout.write('{}{}'.format(x,' , '))
@@ -13,7 +20,7 @@ def put(x,stop=True):
         fout.write(x)
 # 有货状态 , 运费 , 提示 ,
 def stock_put(itemid):
-    url = 'https://c0.3.cn/stock?skuId={}&cat=670,12800,12801&area=17_1441_41909_0&extraParam={%22originid%22:%221%22}'.format(itemid)
+    url = 'https://c0.3.cn/stock?skuId={}{}'.format(1636819576,'&cat=670,12800,12801&area=17_1441_41909_0&extraParam={%22originid%22:%221%22}')
     req = requests.get(url)
     x = json.loads(req.content.decode('gbk'))
 
@@ -88,7 +95,10 @@ def work(itemid):
         cuxiao_put(itemid)
         vender_put(itemid)
         stock_put(itemid)
+        fout.write('\r\n')
     except Exception as e:
         return -1
     else:
         return 0
+def finish():
+    fout.close()
